@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>University Course Registration</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161920;
+    --surface2: #1e2230;
+    --border: #2a2f40;
+    --accent: #e8c547;
+    --accent2: #5b8cf5;
+    --danger: #f05a5a;
+    --success: #4ecb7f;
+    --text: #e8ecf5;
+    --muted: #7a8099;
+    --card: #13161e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; }
+  .screen.active { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ── LOGIN SCREEN ── */
+  #login-screen {
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 20% 50%, #1a1f30 0%, var(--bg) 60%);
+  }
+
+  .login-wrap {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+  }
+
+  .logo-mark {
+    font-family: 'DM Serif Display', serif;
+    font-size: 13px;
+    letter-spacing: 0.25em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .login-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 38px;
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .login-title em { color: var(--accent); font-style: italic; }
+
+  .login-subtitle {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 40px;
+    letter-spacing: 0.05em;
+  }
+
+  .role-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+
+  .role-tab {
+    padding: 12px;
+    text-align: center;
+    background: var(--surface);
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    transition: all 0.2s;
+    border: none;
+  }
+
+  .role-tab.active {
+    background: var(--surface2);
+    color: var(--accent);
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .form-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-input:focus { border-color: var(--accent2); }
+
+  .hint-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    line-height: 1.7;
+  }
+
+  .hint-box span { color: var(--accent); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 20px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0d0f14;
+    width: 100%;
+    justify-content: center;
+  }
+  .btn-primary:hover { background: #f0d060; transform: translateY(-1px); }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--accent2); }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+  }
+  .btn-danger:hover { background: var(--danger); color: white; }
+
+  .btn-success {
+    background: var(--success);
+    color: #0d0f14;
+  }
+  .btn-success:hover { opacity: 0.85; }
+
+  .error-msg {
+    background: rgba(240,90,90,0.1);
+    border: 1px solid rgba(240,90,90,0.3);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--danger);
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  /* ── APP SHELL ── */
+  #app-screen { flex-direction: column; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-brand {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--text);
+  }
+  .topbar-brand em { color: var(--accent); font-style: italic; }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .user-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+  }
+
+  .user-dot.admin { background: var(--accent); }
+
+  .app-body {
+    display: flex;
+    flex: 1;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    flex-shrink: 0;
+  }
+
+  .sidebar-section {
+    padding: 0 16px;
+    margin-bottom: 24px;
+  }
+
+  .sidebar-label {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 8px;
+    margin-bottom: 6px;
+  }
+
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--muted);
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    letter-spacing: 0.04em;
+  }
+
+  .sidebar-item:hover { background: var(--surface2); color: var(--text); }
+  .sidebar-item.active { background: var(--surface2); color: var(--accent); }
+
+  .sidebar-icon { font-size: 14px; width: 18px; text-align: center; }
+
+  /* Main content */
+  .main-content {
+    flex: 1;
+    padding: 28px 32px;
+    overflow-y: auto;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+
+  .page-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--text);
+  }
+
+  .page-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+
+  .stat-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    letter-spacing: 0.06em;
+  }
+
+  .stat-accent { color: var(--accent); }
+  .stat-danger { color: var(--danger); }
+  .stat-success { color: var(--success); }
+
+  /* Table */
+  .table-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .table-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .search-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    outline: none;
+  }
+
+  .search-input::placeholder { color: var(--muted); }
+  .search-input:focus { border-color: var(--accent2); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  th {
+    text-align: left;
+    padding: 11px 18px;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    font-weight: 500;
+  }
+
+  td {
+    padding: 12px 18px;
+    border-bottom: 1px solid rgba(42,47,64,0.5);
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+  }
+
+  .badge-full { background: rgba(240,90,90,0.15); color: var(--danger); }
+  .badge-open { background: rgba(78,203,127,0.15); color: var(--success); }
+  .badge-almost { background: rgba(232,197,71,0.15); color: var(--accent); }
+
+  .enroll-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .enroll-bar {
+    width: 60px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .enroll-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent2);
+    transition: width 0.3s;
+  }
+
+  .enroll-bar-fill.full { background: var(--danger); }
+  .enroll-bar-fill.almost { background: var(--accent); }
+
+  /* Modal */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(3px);
+  }
+
+  .modal-backdrop.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Notification */
+  .notif {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 300;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+  }
+
+  .notif.show { transform: translateY(0); opacity: 1; }
+  .notif.success { background: var(--success); color: #0d0f14; }
+  .notif.error { background: var(--danger); color: white; }
+
+  /* Student list in modal */
+  .student-list {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 8px;
+  }
+
+  .student-item {
+    padding: 6px 0;
+    font-size: 12px;
+    color: var(--text);
+    border-bottom: 1px solid rgba(42,47,64,0.5);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .student-item:last-child { border-bottom: none; }
+
+  /* Edit fields */
+  .edit-group { margin-bottom: 16px; }
+  .edit-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; display: block; }
+
+  /* responsive */
+  @media (max-width: 700px) {
+    .sidebar { display: none; }
+    .main-content { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
+
+<!-- ─── LOGIN SCREEN ─── -->
+<div class="screen active" id="login-screen">
+  <div class="login-wrap">
+    <div class="logo-mark">▸ MyUniversity</div>
+    <h1 class="login-title">Course<br><em>Registration</em></h1>
+    <p class="login-subtitle">Spring 2025 — Enrollment Portal</p>
+
+    <div class="role-tabs">
+      <button class="role-tab active" onclick="setRole('admin')" id="tab-admin">⚙ Admin</button>
+      <button class="role-tab" onclick="setRole('student')" id="tab-student">◉ Student</button>
+    </div>
+
+    <div class="hint-box" id="login-hint">
+      Admin credentials: <span>Admin</span> / <span>Admin001</span>
+    </div>
+
+    <div class="error-msg" id="login-error"></div>
+
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input class="form-input" id="login-user" type="text" placeholder="Enter username" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" id="login-pass" type="password" placeholder="Enter password">
+    </div>
+
+    <button class="btn btn-primary" onclick="doLogin()">Sign In →</button>
+  </div>
+</div>
+
+<!-- ─── APP SCREEN ─── -->
+<div class="screen" id="app-screen">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-brand">My<em>University</em></div>
+    <div class="topbar-right">
+      <div class="user-badge">
+        <div class="user-dot" id="user-dot"></div>
+        <span id="user-label"></span>
+      </div>
+      <button class="btn btn-secondary" onclick="doLogout()" style="padding:7px 14px;font-size:11px;">Logout</button>
+    </div>
+  </div>
+
+  <div class="app-body">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <!-- Admin sidebar -->
+      <div id="sidebar-admin">
+        <div class="sidebar-section">
+          <div class="sidebar-label">Overview</div>
+          <button class="sidebar-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+            <span class="sidebar-icon">◈</span> Dashboard
+          </button>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-label">Management</div>
+          <button class="sidebar-item" onclick="showPage('courses')" id="nav-courses">
+            <span class="sidebar-icon">◧</span> All Courses
+          </button>
+          <button class="sidebar-item" onclick="showPage('students')" id="nav-students">
+            <span class="sidebar-icon">◉</span> Students
+          </button>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-label">Reports</div>
+          <button class="sidebar-item" onclick="showPage('full-courses')" id="nav-full-courses">
+            <span class="sidebar-icon">◈</span> Full Courses
+          </button>
+        </div>
+      </div>
+
+      <!-- Student sidebar -->
+      <div id="sidebar-student" style="display:none">
+        <div class="sidebar-section">
+          <div class="sidebar-label">Browse</div>
+          <button class="sidebar-item active" onclick="showPage('s-all')" id="nav-s-all">
+            <span class="sidebar-icon">◧</span> All Courses
+          </button>
+          <button class="sidebar-item" onclick="showPage('s-open')" id="nav-s-open">
+            <span class="sidebar-icon">◈</span> Open Courses
+          </button>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-label">My Courses</div>
+          <button class="sidebar-item" onclick="showPage('s-mine')" id="nav-s-mine">
+            <span class="sidebar-icon">◉</span> Registered
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="main-content">
+
+      <!-- ── ADMIN: DASHBOARD ── -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Dashboard</div>
+            <div class="page-sub">System overview</div>
+          </div>
+        </div>
+        <div class="stats-row" id="stats-row"></div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <span style="font-size:11px;color:var(--muted);letter-spacing:.08em;">RECENT COURSES</span>
+          </div>
+          <table>
+            <thead><tr>
+              <th>Course</th><th>ID</th><th>Sec</th><th>Instructor</th><th>Enrollment</th><th>Status</th>
+            </tr></thead>
+            <tbody id="dash-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── ADMIN: ALL COURSES ── -->
+      <div class="page" id="page-courses">
+        <div class="page-header">
+          <div>
+            <div class="page-title">All Courses</div>
+            <div class="page-sub">Manage the course catalog</div>
+          </div>
+          <button class="btn btn-primary" onclick="openModal('create-course')" style="width:auto;">+ New Course</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <input class="search-input" id="course-search" placeholder="Search by name, ID, instructor..." oninput="renderCourseTable()">
+          </div>
+          <table>
+            <thead><tr>
+              <th>Course Name</th><th>ID</th><th>Sec</th><th>Instructor</th><th>Location</th><th>Enrollment</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="course-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── ADMIN: STUDENTS ── -->
+      <div class="page" id="page-students">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Students</div>
+            <div class="page-sub">Registered student accounts</div>
+          </div>
+          <button class="btn btn-primary" onclick="openModal('register-student')" style="width:auto;">+ Register Student</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <input class="search-input" id="student-search" placeholder="Search by name or username..." oninput="renderStudentTable()">
+          </div>
+          <table>
+            <thead><tr>
+              <th>Name</th><th>Username</th><th>Courses Registered</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="student-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── ADMIN: FULL COURSES ── -->
+      <div class="page" id="page-full-courses">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Full Courses</div>
+            <div class="page-sub">Courses at maximum capacity</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Course Name</th><th>ID</th><th>Sec</th><th>Instructor</th><th>Capacity</th>
+            </tr></thead>
+            <tbody id="full-course-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── STUDENT: ALL COURSES ── -->
+      <div class="page" id="page-s-all">
+        <div class="page-header">
+          <div>
+            <div class="page-title">All Courses</div>
+            <div class="page-sub">Browse the course catalog</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <input class="search-input" id="s-course-search" placeholder="Search courses..." oninput="renderStudentCourseTable()">
+          </div>
+          <table>
+            <thead><tr>
+              <th>Course Name</th><th>ID</th><th>Sec</th><th>Instructor</th><th>Location</th><th>Enrollment</th><th>Action</th>
+            </tr></thead>
+            <tbody id="s-course-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── STUDENT: OPEN COURSES ── -->
+      <div class="page" id="page-s-open">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Open Courses</div>
+            <div class="page-sub">Courses still accepting enrollment</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Course Name</th><th>ID</th><th>Sec</th><th>Instructor</th><th>Location</th><th>Seats Left</th><th>Action</th>
+            </tr></thead>
+            <tbody id="s-open-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── STUDENT: MY COURSES ── -->
+      <div class="page" id="page-s-mine">
+        <div class="page-header">
+          <div>
+            <div class="page-title">My Courses</div>
+            <div class="page-sub">Your registered courses this semester</div>
+          </div>
+        </div>
+        <div class="table-wrap" id="s-mine-wrap">
+          <table>
+            <thead><tr>
+              <th>Course Name</th><th>ID</th><th>Sec</th><th>Instructor</th><th>Location</th><th>Enrollment</th><th>Action</th>
+            </tr></thead>
+            <tbody id="s-mine-table"></tbody>
+          </table>
+        </div>
+        <div id="s-mine-empty" style="display:none;padding:40px;text-align:center;color:var(--muted);font-size:13px;">
+          You haven't registered for any courses yet.
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ─── MODALS ─── -->
+
+<!-- Create Course -->
+<div class="modal-backdrop" id="modal-create-course">
+  <div class="modal">
+    <div class="modal-title">Create New Course</div>
+    <div class="form-group"><label class="form-label">Course Name</label><input class="form-input" id="cc-name" placeholder="e.g. Data Structures"></div>
+    <div class="form-group"><label class="form-label">Course ID</label><input class="form-input" id="cc-id" placeholder="e.g. CSCI-UA.0102"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label class="form-label">Max Students</label><input class="form-input" id="cc-max" type="number" min="1" placeholder="30"></div>
+      <div class="form-group"><label class="form-label">Section</label><input class="form-input" id="cc-section" type="number" min="1" placeholder="1"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Instructor</label><input class="form-input" id="cc-instructor" placeholder="Prof. Name"></div>
+    <div class="form-group"><label class="form-label">Location</label><input class="form-input" id="cc-location" placeholder="e.g. CIWW 101"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('create-course')">Cancel</button>
+      <button class="btn btn-primary" onclick="createCourse()" style="width:auto;">Create Course</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Course -->
+<div class="modal-backdrop" id="modal-edit-course">
+  <div class="modal">
+    <div class="modal-title">Edit Course</div>
+    <div class="form-group"><label class="form-label">Max Students</label><input class="form-input" id="ec-max" type="number"></div>
+    <div class="form-group"><label class="form-label">Instructor</label><input class="form-input" id="ec-instructor"></div>
+    <div class="form-group"><label class="form-label">Section</label><input class="form-input" id="ec-section" type="number"></div>
+    <div class="form-group"><label class="form-label">Location</label><input class="form-input" id="ec-location"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('edit-course')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()" style="width:auto;">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Course Detail -->
+<div class="modal-backdrop" id="modal-view-course">
+  <div class="modal">
+    <div class="modal-title" id="vc-title"></div>
+    <table style="width:100%;font-size:12px;margin-bottom:16px">
+      <tr><td style="color:var(--muted);padding:5px 0;width:120px">Course ID</td><td id="vc-id"></td></tr>
+      <tr><td style="color:var(--muted);padding:5px 0">Section</td><td id="vc-sec"></td></tr>
+      <tr><td style="color:var(--muted);padding:5px 0">Instructor</td><td id="vc-inst"></td></tr>
+      <tr><td style="color:var(--muted);padding:5px 0">Location</td><td id="vc-loc"></td></tr>
+      <tr><td style="color:var(--muted);padding:5px 0">Capacity</td><td id="vc-cap"></td></tr>
+    </table>
+    <div class="edit-label">Enrolled Students</div>
+    <div class="student-list" id="vc-students"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('view-course')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Register Student (Admin) -->
+<div class="modal-backdrop" id="modal-register-student">
+  <div class="modal">
+    <div class="modal-title">Register New Student</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label class="form-label">First Name</label><input class="form-input" id="rs-first" placeholder="Jane"></div>
+      <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" id="rs-last" placeholder="Doe"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="rs-user" placeholder="jdoe123"></div>
+    <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="rs-pass" type="password" placeholder="Choose a password"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('register-student')">Cancel</button>
+      <button class="btn btn-primary" onclick="registerStudent()" style="width:auto;">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Student Courses (Admin) -->
+<div class="modal-backdrop" id="modal-view-student">
+  <div class="modal">
+    <div class="modal-title" id="vs-name"></div>
+    <div class="edit-label" style="margin-bottom:8px">Registered Courses</div>
+    <div class="student-list" id="vs-courses"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('view-student')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Enroll Student in Course (Student portal) -->
+<div class="modal-backdrop" id="modal-enroll">
+  <div class="modal">
+    <div class="modal-title">Enroll in Course</div>
+    <div id="enroll-course-info" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:20px;font-size:12px;line-height:1.8;"></div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">Confirm you want to enroll in this course.</p>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('enroll')">Cancel</button>
+      <button class="btn btn-success" onclick="confirmEnroll()" style="width:auto;">Confirm Enroll</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ──────────────────────────────────────────────
+// DATA
+// ──────────────────────────────────────────────
+const CSV = `PAC II,CSCI-GA.1144,7,0,NULL,Mohamed Zahran,1,CIWW 312
+Fundamental Algorithms,CSCI-GA.1170,4,0,NULL,Joel Spencer,1,CIWW 109
+Programming Languages,CSCI-GA.2110,7,0,NULL,Benjamin Goldberg,1,CIWW 109
+Compiler Construction,CSCI-GA.2130,3,0,NULL,Eva Rose,1,CIWW 202
+Open Source Tools,CSCI-GA.2246,7,0,NULL,Jeffrey Korn,1,60 Fifth Ave C12
+Operating Systems,CSCI-GA.2250,5,0,NULL,Hubertus Franke,1,CIWW 109
+Database Systems,CSCI-GA.2433,4,0,NULL,Zvi Kedem,1,CIWW 101
+Software Engineering,CSCI-GA.2440,7,0,NULL,Jean Claude Franchitti,1,CIWW 312
+Web Search Engines,CSCI-GA.2580,6,0,NULL,Ernest Davis,1,CIWW 102
+Special Topic: Big Data Science,CSCI-GA.3033,3,0,NULL,Anasse Bari,1,60 Fifth Ave C10
+Special Topic: Social Networks,CSCI-GA.3033,2,0,NULL,Bhubaneswar Mishra,2,CIWW 201
+Special Topic: Cloud Computing,CSCI-GA.3033,4,0,NULL,Jean Claude Franchitti,10,CIWW 102
+Special Topic: DevOps,CSCI-GA.3033,1,0,NULL,John Rofrano,13,CIWW 317
+Intro To Computer Programming,CSCI-UA.0002,4,0,NULL,Joseph Versoza,2,CIWW 312
+Intro To Computer Programming,CSCI-UA.0002,7,0,NULL,Craig Kapp,3,CIWW 109
+Intro to Web Design & Computer Principles,CSCI-UA.0004,6,0,NULL,Joshua Clayton,1,CIWW 102
+Intro to Web Design & Computer Principles,CSCI-UA.0004,4,0,NULL,Amos Bloomberg,4,60 Fifth Ave 150
+Database Design And Web Implementation,CSCI-UA.0060,5,0,NULL,Deena Engel,1,60 Fifth Ave 110
+Web Development And Programming,CSCI-UA.0061,3,0,NULL,Nathan Hull,1,CIWW 512
+Intro To Computer Science,CSCI-UA.0101,4,0,NULL,Suzanne McIntosh,1,60 Fifth Ave 110
+Intro To Computer Science,CSCI-UA.0101,6,0,NULL,Evan Korth,2,CIWW 102
+Data Structures,CSCI-UA.0102,7,0,NULL,Anasse Bari,5,60 Fifth Ave 110
+Computer Systems Organization,CSCI-UA.0201,7,0,NULL,Randy Shepherd,1,60 Fifth Ave 150
+Basic Algorithms,CSCI-UA.0310,5,0,NULL,Victor Shoup,1,CIWW 109
+Numerical Computing,CSCI-UA.0421,4,0,NULL,Michael Overton,1,60 Fifth Ave C12
+Theory Of Computation,CSCI-UA.0453,5,0,NULL,Guy Kindler,1,CIWW 201
+Object Oriented Programming,CSCI-UA.0470,3,0,NULL,Thomas Wies,1,CIWW 102
+Intro To Machine Learning,CSCI-UA.0473,4,0,NULL,Kyunghyun Cho,1,60 Fifth Ave C12
+Introduction to Robotics,CSCI-UA.0465,2,0,NULL,Chee Yap,1,CIWW 312`;
+
+let courses = [];
+let students = [];
+let currentUser = null;  // { role, student? }
+let editTarget = null;
+let enrollTarget = null;
+
+function loadCSV() {
+  courses = [];
+  CSV.split('\n').forEach(line => {
+    if (!line.trim()) return;
+    const f = line.split(',');
+    if (f.length < 8) return;
+    courses.push({
+      courseName: f[0].trim(),
+      courseId: f[1].trim(),
+      maxStudents: parseInt(f[2].trim()),
+      currentStudents: 0,
+      enrolledStudents: [],
+      instructor: f[5].trim(),
+      section: parseInt(f[6].trim()),
+      location: f[7].trim()
+    });
+  });
+}
+
+loadCSV();
+
+// ──────────────────────────────────────────────
+// AUTH
+// ──────────────────────────────────────────────
+let currentRole = 'admin';
+
+function setRole(role) {
+  currentRole = role;
+  document.getElementById('tab-admin').classList.toggle('active', role === 'admin');
+  document.getElementById('tab-student').classList.toggle('active', role === 'student');
+  const hint = document.getElementById('login-hint');
+  if (role === 'admin') hint.innerHTML = 'Admin credentials: <span>Admin</span> / <span>Admin001</span>';
+  else hint.innerHTML = 'Students must be registered by an Admin first. Demo: <span>any username</span> you created.';
+}
+
+function doLogin() {
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value.trim();
+  const err = document.getElementById('login-error');
+  err.style.display = 'none';
+
+  if (currentRole === 'admin') {
+    if (u !== 'Admin' || p !== 'Admin001') {
+      err.textContent = 'Invalid admin credentials.';
+      err.style.display = 'block';
+      return;
+    }
+    currentUser = { role: 'admin' };
+    document.getElementById('user-label').textContent = 'Admin';
+    document.getElementById('user-dot').classList.add('admin');
+    document.getElementById('sidebar-admin').style.display = '';
+    document.getElementById('sidebar-student').style.display = 'none';
+    showPage('dashboard');
+  } else {
+    const s = students.find(x => x.username === u);
+    if (!s) { err.textContent = 'Username not found. Ask admin to register you.'; err.style.display = 'block'; return; }
+    if (s.password !== p) { err.textContent = 'Incorrect password.'; err.style.display = 'block'; return; }
+    currentUser = { role: 'student', student: s };
+    document.getElementById('user-label').textContent = s.firstName + ' ' + s.lastName;
+    document.getElementById('user-dot').classList.remove('admin');
+    document.getElementById('sidebar-admin').style.display = 'none';
+    document.getElementById('sidebar-student').style.display = '';
+    showPage('s-all');
+  }
+
+  document.getElementById('login-screen').classList.remove('active');
+  document.getElementById('app-screen').classList.add('active');
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('app-screen').classList.remove('active');
+  document.getElementById('login-screen').classList.add('active');
+}
+
+// ──────────────────────────────────────────────
+// NAVIGATION
+// ──────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  const nav = document.getElementById('nav-' + id);
+  if (nav) nav.classList.add('active');
+
+  const renders = {
+    'dashboard': renderDashboard,
+    'courses': renderCourseTable,
+    'students': renderStudentTable,
+    'full-courses': renderFullCourseTable,
+    's-all': renderStudentCourseTable,
+    's-open': renderOpenCoursesTable,
+    's-mine': renderMineTable,
+  };
+  if (renders[id]) renders[id]();
+}
+
+// ──────────────────────────────────────────────
+// HELPERS
+// ──────────────────────────────────────────────
+function isFull(c) { return c.currentStudents >= c.maxStudents; }
+function seatsLeft(c) { return c.maxStudents - c.currentStudents; }
+function pct(c) { return c.maxStudents ? c.currentStudents / c.maxStudents : 0; }
+
+function statusBadge(c) {
+  if (isFull(c)) return '<span class="badge badge-full">FULL</span>';
+  if (pct(c) >= 0.75) return '<span class="badge badge-almost">ALMOST FULL</span>';
+  return '<span class="badge badge-open">OPEN</span>';
+}
+
+function enrollBar(c) {
+  const p = Math.round(pct(c) * 100);
+  const cls = p >= 100 ? 'full' : p >= 75 ? 'almost' : '';
+  return `<div class="enroll-bar-wrap">
+    <div class="enroll-bar"><div class="enroll-bar-fill ${cls}" style="width:${p}%"></div></div>
+    <span style="font-size:11px;color:var(--muted)">${c.currentStudents}/${c.maxStudents}</span>
+  </div>`;
+}
+
+function notify(msg, type='success') {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.className = 'notif ' + type + ' show';
+  setTimeout(() => n.classList.remove('show'), 3000);
+}
+
+// ──────────────────────────────────────────────
+// ADMIN RENDERS
+// ──────────────────────────────────────────────
+function renderDashboard() {
+  const total = courses.length;
+  const full = courses.filter(isFull).length;
+  const totalStudents = students.length;
+  const totalEnrolled = courses.reduce((a,c) => a + c.currentStudents, 0);
+
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card"><div class="stat-value stat-accent">${total}</div><div class="stat-label">Total Courses</div></div>
+    <div class="stat-card"><div class="stat-value stat-danger">${full}</div><div class="stat-label">Full Courses</div></div>
+    <div class="stat-card"><div class="stat-value stat-success">${totalStudents}</div><div class="stat-label">Registered Students</div></div>
+    <div class="stat-card"><div class="stat-value">${totalEnrolled}</div><div class="stat-label">Total Enrollments</div></div>
+  `;
+
+  const rows = courses.slice(0, 8).map(c => `
+    <tr>
+      <td>${c.courseName}</td>
+      <td style="color:var(--muted)">${c.courseId}</td>
+      <td>${c.section}</td>
+      <td>${c.instructor}</td>
+      <td>${enrollBar(c)}</td>
+      <td>${statusBadge(c)}</td>
+    </tr>`).join('');
+  document.getElementById('dash-table').innerHTML = rows;
+}
+
+function renderCourseTable() {
+  const q = (document.getElementById('course-search')?.value || '').toLowerCase();
+  const list = courses.filter(c =>
+    c.courseName.toLowerCase().includes(q) ||
+    c.courseId.toLowerCase().includes(q) ||
+    c.instructor.toLowerCase().includes(q)
+  );
+  document.getElementById('course-table').innerHTML = list.map((c, i) => `
+    <tr>
+      <td>${c.courseName}</td>
+      <td style="color:var(--muted);font-size:11px">${c.courseId}</td>
+      <td>${c.section}</td>
+      <td>${c.instructor}</td>
+      <td style="color:var(--muted);font-size:11px">${c.location}</td>
+      <td>${enrollBar(c)}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secondary" style="padding:5px 10px;font-size:10px" onclick="viewCourseDetail(${courses.indexOf(c)})">View</button>
+          <button class="btn btn-secondary" style="padding:5px 10px;font-size:10px" onclick="editCourse(${courses.indexOf(c)})">Edit</button>
+          <button class="btn btn-danger" style="padding:5px 10px;font-size:10px" onclick="deleteCourse(${courses.indexOf(c)})">Del</button>
+        </div>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px">No courses found.</td></tr>';
+}
+
+function renderStudentTable() {
+  const q = (document.getElementById('student-search')?.value || '').toLowerCase();
+  const list = students.filter(s =>
+    (s.firstName + ' ' + s.lastName).toLowerCase().includes(q) ||
+    s.username.toLowerCase().includes(q)
+  );
+  document.getElementById('student-table').innerHTML = list.map(s => `
+    <tr>
+      <td>${s.firstName} ${s.lastName}</td>
+      <td style="color:var(--muted);font-size:11px">${s.username}</td>
+      <td>${s.registeredCourses.length}</td>
+      <td>
+        <button class="btn btn-secondary" style="padding:5px 10px;font-size:10px" onclick="viewStudentCourses('${s.username}')">View Courses</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:30px">No students registered yet.</td></tr>';
+}
+
+function renderFullCourseTable() {
+  const full = courses.filter(isFull);
+  document.getElementById('full-course-table').innerHTML = full.map(c => `
+    <tr>
+      <td>${c.courseName}</td>
+      <td style="color:var(--muted);font-size:11px">${c.courseId}</td>
+      <td>${c.section}</td>
+      <td>${c.instructor}</td>
+      <td><span class="badge badge-full">${c.currentStudents}/${c.maxStudents}</span></td>
+    </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px">No full courses.</td></tr>';
+}
+
+// ──────────────────────────────────────────────
+// STUDENT RENDERS
+// ──────────────────────────────────────────────
+function renderStudentCourseTable() {
+  const q = (document.getElementById('s-course-search')?.value || '').toLowerCase();
+  const list = courses.filter(c =>
+    c.courseName.toLowerCase().includes(q) ||
+    c.courseId.toLowerCase().includes(q)
+  );
+  const s = currentUser.student;
+  document.getElementById('s-course-table').innerHTML = list.map(c => {
+    const idx = courses.indexOf(c);
+    const enrolled = s.registeredCourses.includes(idx);
+    const canEnroll = !isFull(c) && !enrolled;
+    return `<tr>
+      <td>${c.courseName}</td>
+      <td style="color:var(--muted);font-size:11px">${c.courseId}</td>
+      <td>${c.section}</td>
+      <td>${c.instructor}</td>
+      <td style="color:var(--muted);font-size:11px">${c.location}</td>
+      <td>${enrollBar(c)}</td>
+      <td>${enrolled
+        ? '<button class="btn btn-danger" style="padding:5px 10px;font-size:10px" onclick="withdrawCourse('+idx+')">Withdraw</button>'
+        : canEnroll
+          ? '<button class="btn btn-success" style="padding:5px 10px;font-size:10px" onclick="startEnroll('+idx+')">Enroll</button>'
+          : '<span style="font-size:10px;color:var(--muted)">' + (isFull(c) ? 'Full' : 'Enrolled') + '</span>'
+      }</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderOpenCoursesTable() {
+  const s = currentUser.student;
+  const open = courses.filter(c => !isFull(c));
+  document.getElementById('s-open-table').innerHTML = open.map(c => {
+    const idx = courses.indexOf(c);
+    const enrolled = s.registeredCourses.includes(idx);
+    return `<tr>
+      <td>${c.courseName}</td>
+      <td style="color:var(--muted);font-size:11px">${c.courseId}</td>
+      <td>${c.section}</td>
+      <td>${c.instructor}</td>
+      <td style="color:var(--muted);font-size:11px">${c.location}</td>
+      <td><span style="color:var(--success);font-size:12px">${seatsLeft(c)} seats</span></td>
+      <td>${enrolled
+        ? '<span style="font-size:10px;color:var(--muted)">Enrolled</span>'
+        : '<button class="btn btn-success" style="padding:5px 10px;font-size:10px" onclick="startEnroll('+idx+')">Enroll</button>'
+      }</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px">No open courses.</td></tr>';
+}
+
+function renderMineTable() {
+  const s = currentUser.student;
+  const mine = s.registeredCourses.map(i => ({ idx: i, c: courses[i] })).filter(x => x.c);
+  const wrap = document.getElementById('s-mine-wrap');
+  const empty = document.getElementById('s-mine-empty');
+  if (mine.length === 0) {
+    wrap.style.display = 'none'; empty.style.display = '';
+  } else {
+    wrap.style.display = ''; empty.style.display = 'none';
+    document.getElementById('s-mine-table').innerHTML = mine.map(({idx, c}) => `
+      <tr>
+        <td>${c.courseName}</td>
+        <td style="color:var(--muted);font-size:11px">${c.courseId}</td>
+        <td>${c.section}</td>
+        <td>${c.instructor}</td>
+        <td style="color:var(--muted);font-size:11px">${c.location}</td>
+        <td>${enrollBar(c)}</td>
+        <td><button class="btn btn-danger" style="padding:5px 10px;font-size:10px" onclick="withdrawCourse(${idx})">Withdraw</button></td>
+      </tr>`).join('');
+  }
+}
+
+// ──────────────────────────────────────────────
+// ADMIN ACTIONS
+// ──────────────────────────────────────────────
+function createCourse() {
+  const name = document.getElementById('cc-name').value.trim();
+  const id = document.getElementById('cc-id').value.trim();
+  const max = parseInt(document.getElementById('cc-max').value);
+  const section = parseInt(document.getElementById('cc-section').value);
+  const instructor = document.getElementById('cc-instructor').value.trim();
+  const location = document.getElementById('cc-location').value.trim();
+
+  if (!name || !id || !instructor || !location || isNaN(max) || isNaN(section)) {
+    notify('Please fill in all fields.', 'error'); return;
+  }
+  if (courses.find(c => c.courseId === id && c.section === section)) {
+    notify('That Course ID + Section already exists.', 'error'); return;
+  }
+
+  courses.push({ courseName: name, courseId: id, maxStudents: max, currentStudents: 0, enrolledStudents: [], instructor, section, location });
+  notify('Course created successfully!');
+  closeModal('create-course');
+  ['cc-name','cc-id','cc-max','cc-section','cc-instructor','cc-location'].forEach(id => document.getElementById(id).value = '');
+  renderCourseTable();
+}
+
+function deleteCourse(idx) {
+  if (!confirm(`Delete "${courses[idx].courseName} (Sec ${courses[idx].section})"?`)) return;
+  courses.splice(idx, 1);
+  students.forEach(s => { s.registeredCourses = s.registeredCourses.filter(i => i !== idx).map(i => i > idx ? i-1 : i); });
+  notify('Course deleted.');
+  renderCourseTable();
+}
+
+function editCourse(idx) {
+  editTarget = idx;
+  const c = courses[idx];
+  document.getElementById('ec-max').value = c.maxStudents;
+  document.getElementById('ec-instructor').value = c.instructor;
+  document.getElementById('ec-section').value = c.section;
+  document.getElementById('ec-location').value = c.location;
+  openModal('edit-course');
+}
+
+function saveEdit() {
+  const c = courses[editTarget];
+  c.maxStudents = parseInt(document.getElementById('ec-max').value);
+  c.instructor = document.getElementById('ec-instructor').value.trim();
+  c.section = parseInt(document.getElementById('ec-section').value);
+  c.location = document.getElementById('ec-location').value.trim();
+  notify('Course updated.');
+  closeModal('edit-course');
+  renderCourseTable();
+}
+
+function viewCourseDetail(idx) {
+  const c = courses[idx];
+  document.getElementById('vc-title').textContent = c.courseName;
+  document.getElementById('vc-id').textContent = c.courseId;
+  document.getElementById('vc-sec').textContent = c.section;
+  document.getElementById('vc-inst').textContent = c.instructor;
+  document.getElementById('vc-loc').textContent = c.location;
+  document.getElementById('vc-cap').textContent = c.currentStudents + ' / ' + c.maxStudents;
+  const sl = document.getElementById('vc-students');
+  if (c.enrolledStudents.length === 0) {
+    sl.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px">No students enrolled yet.</div>';
+  } else {
+    sl.innerHTML = c.enrolledStudents.map(n => `<div class="student-item"><span style="color:var(--accent2)">◉</span>${n}</div>`).join('');
+  }
+  openModal('view-course');
+}
+
+function registerStudent() {
+  const f = document.getElementById('rs-first').value.trim();
+  const l = document.getElementById('rs-last').value.trim();
+  const u = document.getElementById('rs-user').value.trim();
+  const p = document.getElementById('rs-pass').value.trim();
+  if (!f || !l || !u || !p) { notify('All fields required.', 'error'); return; }
+  if (students.find(s => s.username === u)) { notify('Username already exists.', 'error'); return; }
+  students.push({ firstName: f, lastName: l, username: u, password: p, registeredCourses: [] });
+  notify('Student registered!');
+  closeModal('register-student');
+  ['rs-first','rs-last','rs-user','rs-pass'].forEach(id => document.getElementById(id).value = '');
+  renderStudentTable();
+}
+
+function viewStudentCourses(username) {
+  const s = students.find(x => x.username === username);
+  if (!s) return;
+  document.getElementById('vs-name').textContent = s.firstName + ' ' + s.lastName;
+  const vc = document.getElementById('vs-courses');
+  if (s.registeredCourses.length === 0) {
+    vc.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px">Not enrolled in any courses.</div>';
+  } else {
+    vc.innerHTML = s.registeredCourses.map(i => {
+      const c = courses[i];
+      return c ? `<div class="student-item"><span style="color:var(--accent2)">◧</span>${c.courseName} | ${c.courseId} | Sec ${c.section}</div>` : '';
+    }).join('');
+  }
+  openModal('view-student');
+}
+
+// ──────────────────────────────────────────────
+// STUDENT ACTIONS
+// ──────────────────────────────────────────────
+function startEnroll(idx) {
+  enrollTarget = idx;
+  const c = courses[idx];
+  document.getElementById('enroll-course-info').innerHTML = `
+    <b style="color:var(--text)">${c.courseName}</b><br>
+    <span style="color:var(--muted)">${c.courseId}</span> &nbsp;·&nbsp; Sec ${c.section}<br>
+    Instructor: ${c.instructor}<br>
+    Location: ${c.location}<br>
+    Capacity: ${c.currentStudents}/${c.maxStudents}
+  `;
+  openModal('enroll');
+}
+
+function confirmEnroll() {
+  const s = currentUser.student;
+  const c = courses[enrollTarget];
+  if (isFull(c)) { notify('Course is now full!', 'error'); closeModal('enroll'); return; }
+  if (s.registeredCourses.includes(enrollTarget)) { notify('Already enrolled.', 'error'); closeModal('enroll'); return; }
+  const fullName = s.firstName + ' ' + s.lastName;
+  c.enrolledStudents.push(fullName);
+  c.currentStudents++;
+  s.registeredCourses.push(enrollTarget);
+  notify('Enrolled in ' + c.courseName + '!');
+  closeModal('enroll');
+  renderStudentCourseTable();
+  renderOpenCoursesTable();
+}
+
+function withdrawCourse(idx) {
+  const s = currentUser.student;
+  const c = courses[idx];
+  const fullName = s.firstName + ' ' + s.lastName;
+  const i = c.enrolledStudents.indexOf(fullName);
+  if (i >= 0) { c.enrolledStudents.splice(i, 1); c.currentStudents = Math.max(0, c.currentStudents - 1); }
+  s.registeredCourses = s.registeredCourses.filter(x => x !== idx);
+  notify('Withdrawn from ' + c.courseName + '.');
+  const activePage = document.querySelector('.page.active')?.id;
+  if (activePage === 'page-s-all') renderStudentCourseTable();
+  else if (activePage === 'page-s-open') renderOpenCoursesTable();
+  else if (activePage === 'page-s-mine') renderMineTable();
+}
+
+// ──────────────────────────────────────────────
+// MODALS
+// ──────────────────────────────────────────────
+function openModal(id) {
+  document.getElementById('modal-' + id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById('modal-' + id).classList.remove('open');
+}
+
+// Close modals on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(b => {
+  b.addEventListener('click', e => { if (e.target === b) b.classList.remove('open'); });
+});
+
+// Enter key to login
+document.getElementById('login-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+</script>
+</body>
+</html>
